@@ -6,12 +6,15 @@
 #include "Board.h"
 
 // methods for hands
+// Функционал обработки кликов
 class Hand
 {
   public:
     Hand(Board *board) : board(board)
     {
     }
+
+    // Обработка кликов
     tuple<Response, POS_T, POS_T> get_cell() const
     {
         SDL_Event windowEvent;
@@ -20,36 +23,46 @@ class Hand
         int xc = -1, yc = -1;
         while (true)
         {
+            // Ожидание клика
             if (SDL_PollEvent(&windowEvent))
             {
+                // Обработка событий
                 switch (windowEvent.type)
                 {
+                // Выход
                 case SDL_QUIT:
                     resp = Response::QUIT;
                     break;
+                // Нажатие кнопки мыши
                 case SDL_MOUSEBUTTONDOWN:
+                    // Определение координат поля, по которому совершен клик
                     x = windowEvent.motion.x;
                     y = windowEvent.motion.y;
                     xc = int(y / (board->H / 10) - 1);
                     yc = int(x / (board->W / 10) - 1);
+                    // Клик по кнопке отмены ходы
                     if (xc == -1 && yc == -1 && board->history_mtx.size() > 1)
                     {
                         resp = Response::BACK;
                     }
+                    // Клик по кнопке сброса игры
                     else if (xc == -1 && yc == 8)
                     {
                         resp = Response::REPLAY;
                     }
+                    // Клик по клетке игрового поля
                     else if (xc >= 0 && xc < 8 && yc >= 0 && yc < 8)
                     {
                         resp = Response::CELL;
                     }
+                    // Клик по неигровой области
                     else
                     {
                         xc = -1;
                         yc = -1;
                     }
                     break;
+                // Изменение ширины экрана
                 case SDL_WINDOWEVENT:
                     if (windowEvent.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
                     {
@@ -61,9 +74,12 @@ class Hand
                     break;
             }
         }
+
+        // Возврат ответа с координатами выбранной клетке (при наличии, либо -1)
         return {resp, xc, yc};
     }
 
+    // Ожидание клика после окончания игры
     Response wait() const
     {
         SDL_Event windowEvent;

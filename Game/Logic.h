@@ -19,24 +19,12 @@ class Logic
         optimization = (*config)("Bot", "Optimization");
     }
 
-    vector<move_pos> find_best_turns(const bool color)
-    {
-        next_best_state.clear();
-        next_move.clear();
-
-        find_first_best_turn(board->get_board(), color, -1, -1, 0);
-
-        int cur_state = 0;
-        vector<move_pos> res;
-        do
-        {
-            res.push_back(next_move[cur_state]);
-            cur_state = next_best_state[cur_state];
-        } while (cur_state != -1 && next_move[cur_state].x != -1);
-        return res;
-    }
+    // Поиск наилучшего хода
+    // color - цвет игрока, который ходит (0 - черный, 1 - белый)
+    vector<move_pos> find_best_turns(const bool color);
 
 private:
+    // Сделать ход
     vector<vector<POS_T>> make_turn(vector<vector<POS_T>> mtx, move_pos turn) const
     {
         if (turn.xb != -1)
@@ -48,6 +36,9 @@ private:
         return mtx;
     }
 
+    // Подсчет количества фигур
+    // mtx - матрица ходов
+    // first_bot_color - цвет игрока, ходившего первым
     double calc_score(const vector<vector<POS_T>> &mtx, const bool first_bot_color) const
     {
         // color - who is max player
@@ -56,9 +47,13 @@ private:
         {
             for (POS_T j = 0; j < 8; ++j)
             {
+                // Количество белых пешек
                 w += (mtx[i][j] == 1);
+                // Количество белых королев
                 wq += (mtx[i][j] == 3);
+                // Количество черных пешек
                 b += (mtx[i][j] == 2);
+                // Количество черных королев
                 bq += (mtx[i][j] == 4);
                 if (scoring_mode == "NumberAndPotential")
                 {
@@ -76,6 +71,7 @@ private:
             return INF;
         if (b + bq == 0)
             return 0;
+        // Коэффициент важности королевы относительно пешки
         int q_coef = 4;
         if (scoring_mode == "NumberAndPotential")
         {
@@ -84,117 +80,55 @@ private:
         return (b + bq * q_coef) / (w + wq * q_coef);
     }
 
+    // Поиск первого хода
+    // mtx - матрица возможных ходов
+    // color - цвет игрока, который ходит (0 - черный, 1 - белый)
+    // x, y - координаты фигуры, которая бьет (-1, если таковой нет)
+    // state - номер состояния
+    // alpha - alpha отсечение (дефолтное значение: -1)
     double find_first_best_turn(vector<vector<POS_T>> mtx, const bool color, const POS_T x, const POS_T y, size_t state,
-                                double alpha = -1)
-    {
-        next_best_state.push_back(-1);
-        next_move.emplace_back(-1, -1, -1, -1);
-        double best_score = -1;
-        if (state != 0)
-            find_turns(x, y, mtx);
-        auto turns_now = turns;
-        bool have_beats_now = have_beats;
+                                double alpha = -1);
 
-        if (!have_beats_now && state != 0)
-        {
-            return find_best_turns_rec(mtx, 1 - color, 0, alpha);
-        }
-
-        vector<move_pos> best_moves;
-        vector<int> best_states;
-
-        for (auto turn : turns_now)
-        {
-            size_t next_state = next_move.size();
-            double score;
-            if (have_beats_now)
-            {
-                score = find_first_best_turn(make_turn(mtx, turn), color, turn.x2, turn.y2, next_state, best_score);
-            }
-            else
-            {
-                score = find_best_turns_rec(make_turn(mtx, turn), 1 - color, 0, best_score);
-            }
-            if (score > best_score)
-            {
-                best_score = score;
-                next_best_state[state] = (have_beats_now ? int(next_state) : -1);
-                next_move[state] = turn;
-            }
-        }
-        return best_score;
-    }
-
+    // Построение ходов после первого хода
+    // mtx - матрица возможных ходов
+    // color - цвет противника
+    // depth - глубина
+    // alpha - alpha отсечение (дефолтное значение: -1)
+    // beta - beta отсечение (дефолтное значение: INF + 1)
+    // x, y - координаты фигуры
     double find_best_turns_rec(vector<vector<POS_T>> mtx, const bool color, const size_t depth, double alpha = -1,
-                               double beta = INF + 1, const POS_T x = -1, const POS_T y = -1)
-    {
-        if (depth == Max_depth)
-        {
-            return calc_score(mtx, (depth % 2 == color));
-        }
-        if (x != -1)
-        {
-            find_turns(x, y, mtx);
-        }
-        else
-            find_turns(color, mtx);
-        auto turns_now = turns;
-        bool have_beats_now = have_beats;
-
-        if (!have_beats_now && x != -1)
-        {
-            return find_best_turns_rec(mtx, 1 - color, depth + 1, alpha, beta);
-        }
-
-        if (turns.empty())
-            return (depth % 2 ? 0 : INF);
-
-        double min_score = INF + 1;
-        double max_score = -1;
-        for (auto turn : turns_now)
-        {
-            double score = 0.0;
-            if (!have_beats_now && x == -1)
-            {
-                score = find_best_turns_rec(make_turn(mtx, turn), 1 - color, depth + 1, alpha, beta);
-            }
-            else
-            {
-                score = find_best_turns_rec(make_turn(mtx, turn), color, depth, alpha, beta, turn.x2, turn.y2);
-            }
-            min_score = min(min_score, score);
-            max_score = max(max_score, score);
-            // alpha-beta pruning
-            if (depth % 2)
-                alpha = max(alpha, max_score);
-            else
-                beta = min(beta, min_score);
-            if (optimization != "O0" && alpha >= beta)
-                return (depth % 2 ? max_score + 1 : min_score - 1);
-        }
-        return (depth % 2 ? max_score : min_score);
-    }
+                               double beta = INF + 1, const POS_T x = -1, const POS_T y = -1);
 
 public:
+    // Поиск ходов
+    // color - цвет игрока, который ходит (0 - черный, 1 - белый)
     void find_turns(const bool color)
     {
         find_turns(color, board->get_board());
     }
 
+    // Поиск ходов
+    // x, y - координаты фигуры
     void find_turns(const POS_T x, const POS_T y)
     {
         find_turns(x, y, board->get_board());
     }
 
 private:
+    // Поиск ходов
+    // color - цвет игрока, который ходит (0 - черный, 1 - белый)
+    // mtx - матрица возможных ходов
     void find_turns(const bool color, const vector<vector<POS_T>> &mtx)
     {
         vector<move_pos> res_turns;
         bool have_beats_before = false;
+
+        // Обход клеток игрового поля
         for (POS_T i = 0; i < 8; ++i)
         {
             for (POS_T j = 0; j < 8; ++j)
             {
+                // Если клетка совпадает с цветом
                 if (mtx[i][j] && mtx[i][j] % 2 != color)
                 {
                     find_turns(i, j, mtx);
@@ -215,15 +149,21 @@ private:
         have_beats = have_beats_before;
     }
 
+    // Поиск ходов
+    // x, y - координаты фигуры
+    // mtx - матрица возможных ходов
     void find_turns(const POS_T x, const POS_T y, const vector<vector<POS_T>> &mtx)
     {
         turns.clear();
         have_beats = false;
+        // Тип фигуры
         POS_T type = mtx[x][y];
         // check beats
         switch (type)
         {
+        // Пешка белая
         case 1:
+        // Пешка черная
         case 2:
             // check pieces
             for (POS_T i = x - 2; i <= x + 2; i += 4)
@@ -239,6 +179,7 @@ private:
                 }
             }
             break;
+        // Королева
         default:
             // check queens
             for (POS_T i = -1; i <= 1; i += 2)
@@ -306,16 +247,25 @@ private:
     }
 
   public:
+    // Список ходов
     vector<move_pos> turns;
+    // Флаг наличия побитых фигур
     bool have_beats;
+    // Максимальная глубина
     int Max_depth;
 
   private:
     default_random_engine rand_eng;
+    // Режим подсчета очков
     string scoring_mode;
+    // Режим оптимизации ходов
     string optimization;
+    // Следующий ход
     vector<move_pos> next_move;
+    // Список следующих лучших состояний
     vector<int> next_best_state;
+    // Игровая доска
     Board *board;
+    // Конфигурация
     Config *config;
 };

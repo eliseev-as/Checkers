@@ -176,6 +176,7 @@ class Game
 
         // Подсветка клеток
         board.highlight_cells(cells);
+        // Позиция хода
         move_pos pos = {-1, -1, -1, -1};
         POS_T x = -1, y = -1;
 
@@ -188,7 +189,9 @@ class Game
                 return get<0>(resp);
             pair<POS_T, POS_T> cell{get<1>(resp), get<2>(resp)};
 
+            // Флаг корректности хода
             bool is_correct = false;
+            // Проверка корректности ходов
             for (auto turn : logic.turns)
             {
                 if (turn.x == cell.first && turn.y == cell.second)
@@ -233,13 +236,18 @@ class Game
         board.clear_highlight();
         board.clear_active();
         board.move_piece(pos, pos.xb != -1);
+
+        // Если за ход не было побитых шашек, возвращаем ОК
         if (pos.xb == -1)
             return Response::OK;
         // continue beating while can
         beat_series = 1;
+        // Серия ходов
         while (true)
         {
+            // Поиск ходов с текущей позиции
             logic.find_turns(pos.x2, pos.y2);
+            // Если ходов нет - выходим
             if (!logic.have_beats)
                 break;
 
@@ -253,6 +261,7 @@ class Game
             // trying to make move
             while (true)
             {
+                // Ожидание клика
                 auto resp = hand.get_cell();
                 if (get<0>(resp) != Response::CELL)
                     return get<0>(resp);
@@ -287,6 +296,8 @@ class Game
     Board board;
     Hand hand;
     Logic logic;
+    // Количество побитых шашек
     int beat_series;
+    // Флаг сброса игры
     bool is_replay = false;
 };

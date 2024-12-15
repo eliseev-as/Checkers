@@ -136,6 +136,7 @@ class Game
     }
 
   private:
+    // Ход бота
     void bot_turn(const bool color)
     {
         auto start = chrono::steady_clock::now();
@@ -143,10 +144,12 @@ class Game
         auto delay_ms = config("Bot", "BotDelayMS");
         // new thread for equal delay for each turn
         thread th(SDL_Delay, delay_ms);
+        // Поиск наилучшего хода
         auto turns = logic.find_best_turns(color);
         th.join();
         bool is_first = true;
         // making moves
+        // Обход и выполнение ходов
         for (auto turn : turns)
         {
             if (!is_first)
@@ -155,6 +158,7 @@ class Game
             }
             is_first = false;
             beat_series += (turn.xb != -1);
+            // Перемещение фигуры
             board.move_piece(turn, beat_series);
         }
 

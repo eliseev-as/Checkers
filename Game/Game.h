@@ -34,12 +34,12 @@ class Game
         {
             board.start_draw();
         }
-        // Флаг сброса игры
+        // Флаг начала игры
         is_replay = false;
 
         // Номер хода
         int turn_num = -1;
-        // Флаг выхода из игры
+        // Флаг окончания игры
         bool is_quit = false;
 
         // Максимальное количество ходов
@@ -71,7 +71,7 @@ class Game
                     is_quit = true;
                     break;
                 }
-                // Установка флага сброса игры
+                // Установка флага начала игры
                 else if (resp == Response::REPLAY)
                 {
                     is_replay = true;

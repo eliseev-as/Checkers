@@ -127,10 +127,10 @@ private:
         }
 
         // Копируем список доступных ходов
-        const auto now_turns = turns;
+        auto now_turns = turns;
 
         // Копируем значения флага
-        const auto now_have_beats = have_beats;
+        auto now_have_beats = have_beats;
 
         // Если мы можем побить фигуру противника
         if (!now_have_beats && state != 0) {
@@ -142,9 +142,9 @@ private:
         double best_score = -1;
 
         // Перебираем доступные ходы
-        for (const auto turn : now_turns) {
+        for (auto turn : now_turns) {
             // Новое состояние
-            const size_t new_state = next_move.size();
+            size_t new_state = next_move.size();
 
             // Полученный результат
             double score;
@@ -195,10 +195,10 @@ private:
         }
 
         // Копируем список доступных ходов
-        const auto now_turns = turns;
+        auto now_turns = turns;
 
         // Копируем значения флага
-        const bool now_have_beats = have_beats;
+        bool now_have_beats = have_beats;
 
         // Если нет фигур для побития и была серия побитий
         if (!now_have_beats && x != -1) {
@@ -218,7 +218,7 @@ private:
         double max_score = -1;
 
         // Перебираем доступные ходы
-        for (const auto turn : now_turns) {
+        for (auto turn : now_turns) {
             // Текущий результат
             double score = 0.0;
 

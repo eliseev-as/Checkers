@@ -62,8 +62,6 @@ private:
     }
 
     // Подсчет количества фигур
-    // mtx - матрица ходов
-    // first_bot_color - цвет игрока, ходившего первым
     double calc_score(const vector<vector<POS_T>> &mtx, const bool first_bot_color) const
     {
         // color - who is max player
@@ -134,7 +132,6 @@ private:
 
         // Если мы можем побить фигуру противника
         if (!now_have_beats && state != 0) {
-            // Возвращаем наилучший ход
             return find_best_turns_rec(mtx, 1 - color, 0, alpha);
         }
 
@@ -142,7 +139,7 @@ private:
         double best_score = -1;
 
         // Перебираем доступные ходы
-        for (auto turn : now_turns) {
+        for (auto turn : turns) {
             // Новое состояние
             size_t new_state = next_move.size();
 
@@ -172,93 +169,12 @@ private:
     // Построение ходов после первого хода
     // mtx - матрица возможных ходов
     // color - цвет противника
-    // depth - глубина
+    // depth - уровень сложности
     // alpha - alpha отсечение (дефолтное значение: -1)
     // beta - beta отсечение (дефолтное значение: INF + 1)
     // x, y - координаты фигуры
     double find_best_turns_rec(vector<vector<POS_T>> mtx, const bool color, const size_t depth, double alpha = -1,
-                               double beta = INF + 1, const POS_T x = -1, const POS_T y = -1) {
-        // Условие выхода из рекурсии
-        if (depth == Max_depth) {
-            // Возвращаем наилучший результат
-            return calc_score(mtx, (depth % 2 == color));
-        }
-
-        // Если есть серия побитий
-        if (x != -1) {
-            // Ищем ходы от координаты
-            find_turns(x, y, mtx);
-        }
-        else {
-            // Ищем ходы для выбранного цвета игрока
-            find_turns(color, mtx);
-        }
-
-        // Копируем список доступных ходов
-        auto now_turns = turns;
-
-        // Копируем значения флага
-        bool now_have_beats = have_beats;
-
-        // Если нет фигур для побития и была серия побитий
-        if (!now_have_beats && x != -1) {
-            // Возвращаем наилучший ход
-            return find_best_turns_rec(mtx, 1 - color, depth + 1, alpha, beta);
-        }
-
-        // Проверка наличия ходов
-        if (turns.empty()) {
-            // Возвращаем результат игры
-            return (depth % 2 ? 0 : INF);
-        }
-
-        // Минимальный результат
-        double min_score = INF + 1;
-        // Максимальный результат
-        double max_score = -1;
-
-        // Перебираем доступные ходы
-        for (auto turn : now_turns) {
-            // Текущий результат
-            double score = 0.0;
-
-            // Если есть серия побитий
-            if (now_have_beats) {
-                // Продолжаем серию побитий
-                score = find_best_turns_rec(make_turn(mtx, turn), color, depth, alpha, beta, turn.x2, turn.y2);
-            }
-            else {
-                score = find_best_turns_rec(make_turn(mtx, turn), 1 - color, depth + 1, alpha, beta);
-            }
-
-            // Обновляем минимум
-            min_score = min(min_score, score);
-            // Обновляем Максимум
-            max_score = max(max_score, score);
-
-            // Альфа-бета отсечение
-            // Если ход игрока
-            if (depth % 2) {
-                // Двигаем левую границу
-                alpha = max(alpha, max_score);
-            // Ход противника
-            } else {
-                // Двигаем правую границу
-                beta = min(beta, min_score);
-            }
-
-            // Оптимизация
-            if (optimization != "O0" && alpha > beta) {
-                break;
-            }
-            if (optimization == "O2" && alpha == beta) {;
-                return (depth % 2 ? max_score + 1 : min_score - 1);
-            }
-        }
-
-        // Возвращаем результат ходившего игрока
-        return (depth % 2 ? max_score : min_score);
-    }
+                               double beta = INF + 1, const POS_T x = -1, const POS_T y = -1);
 
 public:
     // Поиск ходов
@@ -412,7 +328,7 @@ private:
     vector<move_pos> turns;
     // Флаг наличия побитых фигур
     bool have_beats;
-    // Максимальная глубина
+    // Уровень сложности
     int Max_depth;
 
   private:

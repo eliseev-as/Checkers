@@ -57,7 +57,7 @@ class Game
             if (logic.turns.empty())
                 break;
 
-            // Установка максимальной глубины для выбранного цвета шашек бота
+            // Установка уровня сложности для выбранного цвета шашек бота
             logic.Max_depth = config("Bot", string((turn_num % 2) ? "Black" : "White") + string("BotLevel"));
 
             // Выбор очередности хода

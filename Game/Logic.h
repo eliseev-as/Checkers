@@ -20,33 +20,7 @@ class Logic
     }
 
     // Поиск наилучшего хода
-    // color - цвет игрока, который ходит (0 - черный, 1 - белый)
-    vector<move_pos> find_best_turns(const bool color) {
-        // Очищаем список следующих ходов
-        next_move.clear();
-        // Очищаем список следующих лучших состояний
-        next_best_state.clear();
-
-        // Осуществляем поиск наилучшего первого хода
-        find_first_best_turn(board->get_board(), color, -1, -1, 0);
-
-        // Начальное состояние
-        int state = 0;
-
-        // Результат (список наилучших ходов)
-        vector<move_pos> res;
-
-        do
-        {
-            // Добавляем следующий ход из текущего состояния
-            res.push_back(next_move[state]);
-            // Переходим в следующее состояние
-            state = next_best_state[state];
-            // Заканчиваем, если текущее состояние или состояние после серии ходов побития становится -1
-        } while (state != -1 && next_move[state].x != -1);
-
-        return res;
-    };
+    vector<move_pos> find_best_turns(const bool color);
 
 private:
     // Сделать ход
@@ -104,88 +78,21 @@ private:
     }
 
     // Поиск первого хода
-    // mtx - матрица возможных ходов
-    // color - цвет игрока, который ходит (0 - черный, 1 - белый)
-    // x, y - координаты фигуры, которая бьет (-1, если таковой нет)
-    // state - номер состояния
-    // alpha - alpha отсечение (дефолтное значение: -1)
     double find_first_best_turn(vector<vector<POS_T>> mtx, const bool color, const POS_T x, const POS_T y, size_t state,
-                                double alpha = -1) {
-        // Добавляем пустой ход
-        next_move.emplace_back(-1, -1, -1, -1);
-
-        // Начальное состояние
-        next_best_state.push_back(-1);
-
-        // Проверяем состояние (для определения наличия списка ходов)
-        // Если state == 0, значит до этого были побиты фигуры противника и искать ходы не нужно
-        if (state != 0) {
-            // Осуществляем поиск ходов
-            find_turns(x, y, mtx);
-        }
-
-        // Копируем список доступных ходов
-        auto now_turns = turns;
-
-        // Копируем значения флага
-        auto now_have_beats = have_beats;
-
-        // Если мы можем побить фигуру противника
-        if (!now_have_beats && state != 0) {
-            return find_best_turns_rec(mtx, 1 - color, 0, alpha);
-        }
-
-        // Наилучший результат на текущий момент
-        double best_score = -1;
-
-        // Перебираем доступные ходы
-        for (auto turn : turns) {
-            // Новое состояние
-            size_t new_state = next_move.size();
-
-            // Полученный результат
-            double score;
-
-            // Если есть кого бить
-            if (now_have_beats) {
-                score = find_first_best_turn(make_turn(mtx, turn), color, turn.x2, turn.y2, new_state, best_score);
-            // Если никого не бьем
-            } else {
-                score = find_best_turns_rec(make_turn(mtx, turn), 1 - color, 0, best_score);
-            }
-
-            // Если полученный результат превосходит наилучший
-            if (score > best_score) {
-                // Обновляем наилучший результат
-                best_score = score;
-                next_move[state] = turn;
-                next_best_state[state] = (now_have_beats ? int(new_state) : -1);
-            }
-        }
-
-        return best_score;
-    };
+                                double alpha = -1);
 
     // Построение ходов после первого хода
-    // mtx - матрица возможных ходов
-    // color - цвет противника
-    // depth - уровень сложности
-    // alpha - alpha отсечение (дефолтное значение: -1)
-    // beta - beta отсечение (дефолтное значение: INF + 1)
-    // x, y - координаты фигуры
     double find_best_turns_rec(vector<vector<POS_T>> mtx, const bool color, const size_t depth, double alpha = -1,
                                double beta = INF + 1, const POS_T x = -1, const POS_T y = -1);
 
 public:
     // Поиск ходов
-    // color - цвет игрока, который ходит (0 - черный, 1 - белый)
     void find_turns(const bool color)
     {
         find_turns(color, board->get_board());
     }
 
     // Поиск ходов
-    // x, y - координаты фигуры
     void find_turns(const POS_T x, const POS_T y)
     {
         find_turns(x, y, board->get_board());
@@ -193,8 +100,6 @@ public:
 
 private:
     // Поиск ходов
-    // color - цвет игрока, который ходит (0 - черный, 1 - белый)
-    // mtx - матрица возможных ходов
     void find_turns(const bool color, const vector<vector<POS_T>> &mtx)
     {
         vector<move_pos> res_turns;
@@ -227,8 +132,6 @@ private:
     }
 
     // Поиск ходов
-    // x, y - координаты фигуры
-    // mtx - матрица возможных ходов
     void find_turns(const POS_T x, const POS_T y, const vector<vector<POS_T>> &mtx)
     {
         turns.clear();

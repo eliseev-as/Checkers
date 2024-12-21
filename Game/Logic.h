@@ -46,7 +46,7 @@ class Logic
         } while (state != -1 && next_move[state].x != -1);
 
         return res;
-    };
+    }
 
 private:
     // Сделать ход
@@ -167,7 +167,7 @@ private:
         }
 
         return best_score;
-    };
+    }
 
     // Построение ходов после первого хода
     // mtx - матрица возможных ходов

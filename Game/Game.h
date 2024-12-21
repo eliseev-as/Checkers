@@ -164,7 +164,6 @@ class Game
         fout.close();
     }
 
-    // Ход игрока
     Response player_turn(const bool color)
     {
         // return 1 if quit
@@ -173,16 +172,12 @@ class Game
         {
             cells.emplace_back(turn.x, turn.y);
         }
-
-        // Подсветка клеток
         board.highlight_cells(cells);
         move_pos pos = {-1, -1, -1, -1};
         POS_T x = -1, y = -1;
-
-        // Обработка кликов
+        // trying to make first move
         while (true)
         {
-            // Ожидание клика
             auto resp = hand.get_cell();
             if (get<0>(resp) != Response::CELL)
                 return get<0>(resp);

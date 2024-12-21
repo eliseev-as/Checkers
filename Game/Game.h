@@ -21,63 +21,41 @@ class Game
     int play()
     {
         auto start = chrono::steady_clock::now();
-
-        // Установка начальных настроек
         if (is_replay)
         {
             logic = Logic(&board, &config);
             config.reload();
             board.redraw();
         }
-        // Загрузка игрового поля
         else
         {
             board.start_draw();
         }
-        // Флаг начала игры
         is_replay = false;
 
-        // Номер хода
         int turn_num = -1;
-        // Флаг окончания игры
         bool is_quit = false;
-
-        // Максимальное количество ходов
         const int Max_turns = config("Game", "MaxNumTurns");
-
-        // Если текущий ход меньше максимального
         while (++turn_num < Max_turns)
         {
             beat_series = 0;
-
-            // Поиск ходов
             logic.find_turns(turn_num % 2);
-
-            // Если ходов нет, выходим из игры
             if (logic.turns.empty())
                 break;
-
-            // Установка уровня сложности для выбранного цвета шашек бота
             logic.Max_depth = config("Bot", string((turn_num % 2) ? "Black" : "White") + string("BotLevel"));
-
-            // Выбор очередности хода
             if (!config("Bot", string("Is") + string((turn_num % 2) ? "Black" : "White") + string("Bot")))
             {
-                // Ход игрока
                 auto resp = player_turn(turn_num % 2);
-                // Установка флага выхода из игры
                 if (resp == Response::QUIT)
                 {
                     is_quit = true;
                     break;
                 }
-                // Установка флага начала игры
                 else if (resp == Response::REPLAY)
                 {
                     is_replay = true;
                     break;
                 }
-                // Отмена последнего хода
                 else if (resp == Response::BACK)
                 {
                     if (config("Bot", string("Is") + string((1 - turn_num % 2) ? "Black" : "White") + string("Bot")) &&
@@ -95,36 +73,26 @@ class Game
                 }
             }
             else
-                // Ход бота
                 bot_turn(turn_num % 2);
         }
         auto end = chrono::steady_clock::now();
-
-        // Логирование процесса игры
         ofstream fout(project_path + "log.txt", ios_base::app);
         fout << "Game time: " << (int)chrono::duration<double, milli>(end - start).count() << " millisec\n";
         fout.close();
 
-        // Начало игры
         if (is_replay)
             return play();
-        // Выход из игры
         if (is_quit)
             return 0;
-        // Результат игры
         int res = 2;
-
-        // Если текущий ход равен максимальному
         if (turn_num == Max_turns)
         {
             res = 0;
         }
-        // Если текущий ход бота
         else if (turn_num % 2)
         {
             res = 1;
         }
-        // Отображение результата игры
         board.show_final(res);
         auto resp = hand.wait();
         if (resp == Response::REPLAY)

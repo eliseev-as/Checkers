@@ -25,7 +25,6 @@ public:
     }
 
     // draws start board
-    // Начальная отрисовка игрового поля
     int start_draw()
     {
         if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
@@ -239,16 +238,13 @@ private:
     }
 
     // function that re-draw all the textures
-    // Функция перерисовки игрового поля
     void rerender()
     {
         // draw board
-        // Отрисовка доски
         SDL_RenderClear(ren);
         SDL_RenderCopy(ren, board, NULL, NULL);
 
         // draw pieces
-        // Отрисовка фигур
         for (POS_T i = 0; i < 8; ++i)
         {
             for (POS_T j = 0; j < 8; ++j)
@@ -274,7 +270,6 @@ private:
         }
 
         // draw hilight
-        // Отрисовка выделений
         SDL_SetRenderDrawColor(ren, 0, 255, 0, 0);
         const double scale = 2.5;
         SDL_RenderSetScale(ren, scale, scale);
@@ -301,14 +296,12 @@ private:
         SDL_RenderSetScale(ren, 1, 1);
 
         // draw arrows
-        // Отрисовка стрелок
         SDL_Rect rect_left{ W / 40, H / 40, W / 15, H / 15 };
         SDL_RenderCopy(ren, back, NULL, &rect_left);
         SDL_Rect replay_rect{ W * 109 / 120, H / 40, W / 15, H / 15 };
         SDL_RenderCopy(ren, replay, NULL, &replay_rect);
 
         // draw result
-        // Отрисовка результата
         if (game_results != -1)
         {
             string result_path = draw_path;

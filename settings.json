@@ -1,11 +1,9 @@
 {
     "WindowSize": {
-        "_comment": "Размер экрана. Width - ширина, Hight - высота. 0 - полноэкранный режим.",
         "Width": 0,
         "Hight": 0
     },
     "Bot": {
-        "_comment": "Бот. IsWhiteBot - белый цвет шашек. IsBlackBot - черный цвет шашек. WhiteBotLevel и BlackBotLevel - уровни сложности для выбранного цвета шашек. BotScoringType - режим подсчета очков. BotDelayMS - время задержки бота. NoRandom - будет ли использован генератор случайных чисел в функции поиска хода. Optimization - режим оптимизации ходов",
         "IsWhiteBot": false,
         "IsBlackBot": true,
         "WhiteBotLevel": 0,
@@ -16,7 +14,6 @@
         "Optimization": "O1"
     },
     "Game": {
-        "_comment": "Игра. MaxNumTurns - максимальное количество ходов.",
         "MaxNumTurns": 120
     }
 }
